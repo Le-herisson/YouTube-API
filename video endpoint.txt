@@ -1,0 +1,21 @@
+/video/{vid}/info
+- direct url to my site
+- date (upload)
+- dis/like count
+- view_count
+- deleted
+- title
+- author (name , handle, id)
+- type [video | short | live]
+- resolution
+- thumbnail ( height, width, url)
+- length
+- tags
+- genre
+- description
+
+/video/{vid}/download?vformat=(mp4 | mp3 | mkv)
+- download link
+
+/video/{vid}/sub
+- subtitles
