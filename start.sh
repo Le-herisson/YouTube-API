@@ -1,1 +1,1 @@
- uvicorn --host 127.0.0.1 --port 2684 --reload --log-level info --use-colors main:app
+ uvicorn --host 0.0.0.0 --port 2684 --log-level info --use-colors main:app

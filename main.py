@@ -133,9 +133,9 @@ def page_video_download(vid: str, vformat: str):
         }) as ydl:
             return {"detail": ydl.extract_info(f"https://youtu.be/{vid}", download=False)['url'], "success": True}
     elif vformat == "mkv":
-        return {"detail": "Error: this format is not supported yet", "details": vformat, "success": False}
+        return {"detail": f"Error: this format is not supported yet. '{vformat}'", "success": False}
     else:
-        return {"detail": "Error: this format is not valid", "details": vformat, "success": False}
+        return {"detail": f"Error: this format is not valid. '{vformat}'", "success": False}
 
 
 @app.get(path="/video/{vid}/sub")
