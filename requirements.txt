@@ -1,6 +1,7 @@
 annotated-doc==0.0.3
 annotated-types==0.7.0
 anyio==4.11.0
+brotli==1.2.0
 certifi==2025.10.5
 charset-normalizer==3.4.4
 click==8.3.0
@@ -8,6 +9,8 @@ colorama==0.4.6
 fastapi==0.120.0
 h11==0.16.0
 idna==3.11
+mutagen==1.47.0
+pycryptodomex==3.23.0
 pydantic==2.12.3
 pydantic_core==2.41.4
 requests==2.32.5
@@ -17,5 +20,7 @@ typing-inspection==0.4.2
 typing_extensions==4.15.0
 urllib3==2.5.0
 uvicorn==0.38.0
+websockets==16.0
 youtube-dl==2021.12.17
-yt-dlp @ https://github.com/yt-dlp/yt-dlp/archive/master.zip
+yt-dlp==2026.1.29
+yt-dlp-ejs==0.4.0
