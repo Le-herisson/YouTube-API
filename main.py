@@ -57,7 +57,7 @@ def page_video_info(vid: str, raw: bool = False):
     try:
         if raw:
             print("[infos] Trying")
-            with yt_dlp.YoutubeDL({'quiet': True, 'simulate': True, 'noplaylist': True}) as ydl:
+            with yt_dlp.YoutubeDL({'quiet': True, 'simulate': True, 'noplaylist': True, 'js_runtimes': {'deno': '/bin/deno.exe'}}) as ydl:
                 print("[infos] Success")
                 return {"detail": ydl.extract_info(f"https://youtu.be/{vid}", download=False), "success": True}
         else:
