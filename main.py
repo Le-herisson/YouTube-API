@@ -1,4 +1,5 @@
-import json
+import os
+import random
 import re
 import requests
 import yt_dlp
@@ -6,6 +7,7 @@ import yt_dlp
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+Maybe = random.choice(seq=[True, False])
 formats = {"best": "bestvideo+bestaudio/best", "4K": "res:3840,fps", "2K": "res:2048,fps", "1080p": "res:1080,fps",
            "720p": "res:720,fps", "480p": "res:480,fps", "lower": "wv*+wa/w"}
 
@@ -18,7 +20,7 @@ def valid_quality(q: str):
     return q in formats
 
 
-app = FastAPI(title="YouTube API", description="An alternative for the Official YT Api", version="0.9", root_path="",
+app = FastAPI(title="YouTube API", description="An alternative for the Official YT Api", version="1.8", root_path="",
               redoc_url="/newdocs")
 
 app.add_middleware(middleware_class=CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["GET"],
@@ -47,6 +49,7 @@ def page_help():
     }
 
 
+# noinspection PyStatementEffect
 @app.get(path="/video/{vid}/info")
 def page_video_info(vid: str, raw: bool = False):
     if not valid_vid(vid):
@@ -125,26 +128,31 @@ def page_video_info(vid: str, raw: bool = False):
         return {"detail": f"Error: {e}", "success": False}
 
 
-@app.get(path="/video/{vid}/url")
-def page_video_url(vid: str, vf: str, q: str = 'best'):
+@app.get(path="/video/{vid}/urls")
+def page_video_url(vid: str, q: str = 'best'):
     if not valid_vid(vid):
         return {"detail": "Error: this id is not in a valid format", "success": False}
-
-    if vf not in {'mp3', 'mp4'}:
-        return {"detail": f"Error: this format is not valid. '{vf}'", "success": False}
-    ytdl_opts = {'quiet': True, 'simulate': True, 'forceurl': True}
-    if vf == "mp4":
-        if not valid_quality(q):
-            return {"detail": "Error: this quality is not in a valid format", "success": False}
-        ytdl_opts = {**ytdl_opts, **{'f' if q == "best" or q == "lower" else 'S': formats.get(q)}}
-    elif vf == "mp3":
-        ytdl_opts = {**ytdl_opts, **{'extract_audio': True, 'format': 'ba[acodec^=mp3]/ba/b', 'audio-format': vf}}
+    ytdl_opts = {'simulate': True, 'forceurl': True, 'noplaylist': True, 'f': formats.get(q)}
+    # ytdl_opts = {**ytdl_opts, **{'extract_audio': True, 'format': 'ba[acodec^=mp3]/ba/b', 'audio-format': vf}}
     with yt_dlp.YoutubeDL(ytdl_opts) as ydl:
         print(f"ytdl_opts: {ytdl_opts}")
         if q == "lower":
             return {"detail": 'F*ck, that killed my time too much.', "success": False}
-        else:
-            return {"detail": ydl.extract_info(f"https://youtu.be/{vid}", download=False)['url'], "success": True}
+        infos = ydl.extract_info(f"https://youtu.be/{vid}", download=False)
+        print(f"INFO:    infos['requested_formats']={infos['requested_formats']}")
+        is_premium = infos['requested_formats'][0]['format_note'] == "Premium"
+        if is_premium:
+            print(f"WARN:     This format is Premium")
+        return {
+            "detail": {
+                "video": infos['formats'][-2]['url'] if is_premium else infos['requested_formats'][0]['url'],
+                "audio": infos['requested_formats'][1]['url'],
+                "video_frmt": infos['formats'][-2]['format'] if is_premium else infos['requested_formats'][0]['format'],
+                "audio_frmt": infos['requested_formats'][1]['format'],
+                "is_premium": is_premium
+            },
+            "success": True
+        }
 
 
 @app.get(path="/video/{vid}/sub")
@@ -193,3 +201,28 @@ def page_channel_info(handle: str, raw: bool = False):
     except Exception as e:
         print(f"ERROR:    {e}")
         return {"detail": f"Error: {e}", "success": False}
+
+
+@app.get(path="/channel/{handle}/videos")
+def page_channel_videos(handle: str, l: int = 10):
+    handle = handle.replace('@', '')
+    path = f"videos/{handle}.txt"
+    if os.path.exists(path):
+        os.remove(path)
+    os.system(
+        f"yt-dlp --flat-playlist --print-to-file webpage_url \"{path}\" \"https://youtube.com/@{handle}\""
+    )
+    print(f"INFO:     errorlevel={os.system("ECHO %ERRORLEVEL%")}")
+    try:
+        with open(file=f"{path}", mode="r", encoding="utf-8") as f:
+            vids = f.read()
+    except Exception as e:
+        print(f"ERROR:    {e}")
+        return {"detail": f"Error: {e}", "success": False}
+    return {
+        "detail": {
+            "channel": handle,
+            "videos": vids
+        },
+        "success": True
+    }
