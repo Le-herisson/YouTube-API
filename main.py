@@ -20,7 +20,7 @@ def valid_quality(q: str):
     return q in formats
 
 
-app = FastAPI(title="YouTube API", description="An alternative for the Official YT Api", version="1.8", root_path="",
+app = FastAPI(title="YouTube API", description="An alternative for the Official YT Api", version="1.9", root_path="",
               redoc_url="/newdocs")
 
 app.add_middleware(middleware_class=CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["GET"],
@@ -57,7 +57,7 @@ def page_video_info(vid: str, raw: bool = False):
     try:
         if raw:
             print("[infos] Trying")
-            with yt_dlp.YoutubeDL({'quiet': True, 'simulate': True, 'noplaylist': True, 'js_runtimes': {'deno': '/bin/deno.exe'}}) as ydl:
+            with yt_dlp.YoutubeDL({'quiet': True, 'simulate': True, 'noplaylist': True, 'js_runtimes': {'deno': {'path': 'bin/deno.exe'}}}) as ydl:
                 print("[infos] Success")
                 return {"detail": ydl.extract_info(f"https://youtu.be/{vid}", download=False), "success": True}
         else:
