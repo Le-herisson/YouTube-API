@@ -1,0 +1,3 @@
+bin/deno_win.zip
+bin/*.cmd
+bin/*.exe
