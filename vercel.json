@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "bin/**": {
+      "excludeFiles": "{deno_win.zip,*.cmd,*.exe}/**"
+    }
+  }
+}

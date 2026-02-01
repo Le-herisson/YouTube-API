@@ -1,1 +1,1 @@
-unzip deno.zip
+unzip deno_linux.zip
