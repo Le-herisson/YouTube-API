@@ -22,7 +22,7 @@ def valid_quality(q: str):
     return q in formats
 
 
-app = FastAPI(title="YouTube API", description="An alternative for the Official YT Api", version="1.9", root_path="",
+app = FastAPI(title="YouTube API", description="An alternative for the Official YT Api", version="1.9.1", root_path="",
               redoc_url="/newdocs")
 
 app.add_middleware(middleware_class=CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["GET"],
@@ -31,7 +31,7 @@ app.add_middleware(middleware_class=CORSMiddleware, allow_origins=["*"], allow_c
 
 @app.get(path="/")
 def page_root():
-    return {"detail": f"{app.description}", "success": True}
+    return {"detail": {"description": app.description, "version": app.version}, "success": True}
 
 
 @app.get(path="/help")
@@ -43,8 +43,7 @@ def page_help():
             "help": "/help",
             "get video info": "/video/{vid}/info?raw=[BOOL]",
             "get video subtitles": "/video/{vid}/sub",
-            "get video download link":
-                "/video/{vid}/url?vf=(mp3 | mp4)&q=(best | 4K | 2K | 1080p | 720p | 480p | lower)",
+            "get video download link": "/video/{vid}/url?vf=(mp3 | mp4)&q=(best | 4K | 2K | 1080p | 720p | 480p | lower)",
             "get channel info": "/channel/{handle}/info?raw=[BOOL]"
         },
         "success": True
@@ -152,8 +151,7 @@ def page_video_url(vid: str, q: str = 'best'):
                 "detail": {
                     "video": infos['formats'][-2]['url'] if is_premium else infos['requested_formats'][0]['url'],
                     "audio": infos['requested_formats'][1]['url'],
-                    "video_frmt": infos['formats'][-2]['format'] if is_premium else infos['requested_formats'][0][
-                        'format'],
+                    "video_frmt": infos['formats'][-2]['format'] if is_premium else infos['requested_formats'][0]['format'],
                     "audio_frmt": infos['requested_formats'][1]['format'],
                     "is_premium": is_premium
                 },
@@ -221,7 +219,8 @@ def page_channel_videos(handle: str, l: int = 10):
     os.system(
         f"yt-dlp --flat-playlist --print-to-file webpage_url \"{path}\" \"https://youtube.com/@{handle}\""
     )
-    print(f"INFO:     errorlevel={os.system("ECHO %ERRORLEVEL%")}")
+    if platform.system() == "Windows":
+        print(f"INFO:     errorlevel={os.system("ECHO %ERRORLEVEL%")}")
     try:
         with open(file=f"{path}", mode="r", encoding="utf-8") as f:
             vids = f.read()

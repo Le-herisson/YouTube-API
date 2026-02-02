@@ -1,4 +1,4 @@
-bin/deno_win.zip
+bin/*_win.zip
 bin/*.cmd
 bin/*.exe
 bin/*.dll
