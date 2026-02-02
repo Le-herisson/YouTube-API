@@ -2,3 +2,4 @@ bin/win.zip
 bin/*.cmd
 bin/*.exe
 bin/*.dll
+bin/yt-dlp_linux.zip
