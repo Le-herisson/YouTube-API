@@ -1,3 +1,3 @@
-unzip deno_linux.zip
-unzip ffmpeg_linux.zip
-unzip ytdlp_linux.zip
+unzip deno_linux.7z
+unzip ffmpeg_linux.7z
+unzip ytdlp_linux.7z
