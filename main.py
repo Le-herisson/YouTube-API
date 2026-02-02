@@ -22,7 +22,7 @@ def valid_quality(q: str):
     return q in formats
 
 
-app = FastAPI(title="YouTube API", description="An alternative for the Official YT Api", version="1.9.1", root_path="",
+app = FastAPI(title="YouTube API", description="An alternative for the Official YT Api", version="1.9.3", root_path="",
               redoc_url="/newdocs")
 
 app.add_middleware(middleware_class=CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["GET"],
