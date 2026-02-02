@@ -213,24 +213,31 @@ def page_channel_info(handle: str, raw: bool = False):
 @app.get(path="/channel/{handle}/videos")
 def page_channel_videos(handle: str, l: int = 10):
     handle = handle.replace('@', '')
-    path = f"videos/{handle}.txt"
-    if os.path.exists(path):
-        os.remove(path)
-    os.system(
-        f"yt-dlp --flat-playlist --print-to-file webpage_url \"{path}\" \"https://youtube.com/@{handle}\""
-    )
-    if platform.system() == "Windows":
-        print(f"INFO:     errorlevel={os.system("ECHO %ERRORLEVEL%")}")
-    try:
-        with open(file=f"{path}", mode="r", encoding="utf-8") as f:
-            vids = f.read()
-    except Exception as e:
-        print(f"ERROR:    {e}")
-        return {"detail": f"Error: {e}", "success": False}
+    # path = f"videos/{handle}.txt"
+    # if os.path.exists(path):
+    #     os.remove(path)
+    # os.system(
+    #     f"yt-dlp --flat-playlist --print-to-file webpage_url \"{path}\" \"https://youtube.com/@{handle}\""
+    # )
+    # if platform.system() == "Windows":
+    #     print(f"INFO:     errorlevel={os.system("ECHO %ERRORLEVEL%")}")
+    # try:
+    #     with open(file=f"{path}", mode="r", encoding="utf-8") as f:
+    #         vids = f.read()
+    # except Exception as e:
+    #     print(f"ERROR:    {e}")
+    #     return {"detail": f"Error: {e}", "success": False}
+    # return {
+    #     "detail": {
+    #         "channel": handle,
+    #         "videos": vids
+    #     },
+    #     "success": True
+    # }
     return {
         "detail": {
             "channel": handle,
-            "videos": vids
+            "videos": "soon"
         },
-        "success": True
+        "success": False
     }
