@@ -1,4 +1,5 @@
 import os
+import platform
 import random
 import re
 import requests
@@ -8,6 +9,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 Maybe = random.choice(seq=[True, False])
+deno_path = "./bin/deno.exe" if platform.system() == "Windows" else "./bin/deno"
 formats = {"best": "bestvideo+bestaudio/best", "4K": "res:3840,fps", "2K": "res:2048,fps", "1080p": "res:1080,fps",
            "720p": "res:720,fps", "480p": "res:480,fps", "lower": "wv*+wa/w"}
 
@@ -57,7 +59,8 @@ def page_video_info(vid: str, raw: bool = False):
     try:
         if raw:
             print("[infos] Trying")
-            with yt_dlp.YoutubeDL({'quiet': True, 'simulate': True, 'noplaylist': True, 'js_runtimes': {'deno': {'path': './bin/deno'}}}) as ydl:
+            with yt_dlp.YoutubeDL({'quiet': True, 'simulate': True, 'noplaylist': True,
+                                   'js_runtimes': {'deno': {'path': deno_path}}}) as ydl:
                 print("[infos] Success")
                 return {"detail": ydl.extract_info(f"https://youtu.be/{vid}", download=False), "success": True}
         else:
@@ -132,27 +135,33 @@ def page_video_info(vid: str, raw: bool = False):
 def page_video_url(vid: str, q: str = 'best'):
     if not valid_vid(vid):
         return {"detail": "Error: this id is not in a valid format", "success": False}
-    ytdl_opts = {'simulate': True, 'forceurl': True, 'noplaylist': True, 'f': formats.get(q)}
+    ytdl_opts = {'simulate': True, 'forceurl': True, 'noplaylist': True, 'f': formats.get(q),
+                 'js_runtimes': {'deno': {'path': deno_path}}}
     # ytdl_opts = {**ytdl_opts, **{'extract_audio': True, 'format': 'ba[acodec^=mp3]/ba/b', 'audio-format': vf}}
-    with yt_dlp.YoutubeDL(ytdl_opts) as ydl:
-        print(f"ytdl_opts: {ytdl_opts}")
-        if q == "lower":
-            return {"detail": 'F*ck, that killed my time too much.', "success": False}
-        infos = ydl.extract_info(f"https://youtu.be/{vid}", download=False)
-        print(f"INFO:    infos['requested_formats']={infos['requested_formats']}")
-        is_premium = infos['requested_formats'][0]['format_note'] == "Premium"
-        if is_premium:
-            print(f"WARN:     This format is Premium")
-        return {
-            "detail": {
-                "video": infos['formats'][-2]['url'] if is_premium else infos['requested_formats'][0]['url'],
-                "audio": infos['requested_formats'][1]['url'],
-                "video_frmt": infos['formats'][-2]['format'] if is_premium else infos['requested_formats'][0]['format'],
-                "audio_frmt": infos['requested_formats'][1]['format'],
-                "is_premium": is_premium
-            },
-            "success": True
-        }
+    try:
+        with yt_dlp.YoutubeDL(ytdl_opts) as ydl:
+            print(f"ytdl_opts: {ytdl_opts}")
+            if q == "lower":
+                return {"detail": 'F*ck, that killed my time too much.', "success": False}
+            infos = ydl.extract_info(f"https://youtu.be/{vid}", download=False)
+            print(f"INFO:    infos['requested_formats']={infos['requested_formats']}")
+            is_premium = infos['requested_formats'][0]['format_note'] == "Premium"
+            if is_premium:
+                print(f"WARN:     This format is Premium")
+            return {
+                "detail": {
+                    "video": infos['formats'][-2]['url'] if is_premium else infos['requested_formats'][0]['url'],
+                    "audio": infos['requested_formats'][1]['url'],
+                    "video_frmt": infos['formats'][-2]['format'] if is_premium else infos['requested_formats'][0][
+                        'format'],
+                    "audio_frmt": infos['requested_formats'][1]['format'],
+                    "is_premium": is_premium
+                },
+                "success": True
+            }
+    except Exception as e:
+        print(f"ERROR:    {e}")
+        return {"detail": f"Error: {e}", "success": False}
 
 
 @app.get(path="/video/{vid}/sub")
