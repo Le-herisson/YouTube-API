@@ -3,6 +3,7 @@ import platform
 import random
 import re
 import requests
+import uvicorn
 import yt_dlp
 
 from fastapi import FastAPI
@@ -22,7 +23,7 @@ def valid_quality(q: str):
     return q in formats
 
 
-app = FastAPI(title="YouTube API", description="An alternative for the Official YT Api", version="1.9.3", root_path="",
+app = FastAPI(title="YouTube API", description="An alternative for the Official YT Api", version="1.9.5", root_path="",
               redoc_url="/newdocs")
 
 app.add_middleware(middleware_class=CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["GET"],
@@ -59,7 +60,7 @@ def page_video_info(vid: str, raw: bool = False):
         if raw:
             print("[infos] Trying")
             with yt_dlp.YoutubeDL({'quiet': True, 'simulate': True, 'noplaylist': True,
-                                   'js_runtimes': {'deno': {'path': deno_path}}}) as ydl:
+                                   'js_runtimes': {'deno': {'path': deno_path}}, "ffmpeg_location": "./bin/"}) as ydl:
                 print("[infos] Success")
                 return {"detail": ydl.extract_info(f"https://youtu.be/{vid}", download=False), "success": True}
         else:
@@ -76,7 +77,8 @@ def page_video_info(vid: str, raw: bool = False):
                 }
             else:
                 try:
-                    with yt_dlp.YoutubeDL({'quiet': True, 'simulate': True, 'noplaylist': True}) as ydl:
+                    with yt_dlp.YoutubeDL({'quiet': True, 'simulate': True, 'noplaylist': True,
+                                           'js_runtimes': {'deno': {'path': deno_path}}, "ffmpeg_location": "./bin/"}) as ydl:
                         print("[infos] Trying")
                         info = ydl.extract_info(f"https://youtu.be/{vid}", download=False)
                         print("[infos] Success")
@@ -135,7 +137,7 @@ def page_video_url(vid: str, q: str = 'best'):
     if not valid_vid(vid):
         return {"detail": "Error: this id is not in a valid format", "success": False}
     ytdl_opts = {'simulate': True, 'forceurl': True, 'noplaylist': True, 'f': formats.get(q),
-                 'js_runtimes': {'deno': {'path': deno_path}}}
+                 'js_runtimes': {'deno': {'path': deno_path}}, "ffmpeg_location": "./bin/"}
     # ytdl_opts = {**ytdl_opts, **{'extract_audio': True, 'format': 'ba[acodec^=mp3]/ba/b', 'audio-format': vf}}
     try:
         with yt_dlp.YoutubeDL(ytdl_opts) as ydl:
@@ -241,3 +243,15 @@ def page_channel_videos(handle: str, l: int = 10):
         },
         "success": False
     }
+
+
+if __name__ == "__main__":
+    uvicorn.run(
+        app="main:app",
+        host="0.0.0.0",
+        port=2684,
+        ssl_keyfile="./certs/key.pem",
+        ssl_certfile="./certs/cert.pem",
+        reload=False,
+        use_colors=True
+    )
