@@ -27,6 +27,7 @@ else:
         "yt-dlp": "./bin/yt-dlp",
     })
 
+
 app = FastAPI(
     title="YouTube API",
     description="An alternative for the Official YT Api",
