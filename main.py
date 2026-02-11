@@ -24,6 +24,7 @@ else:
     youtube.init(paths={
         "deno": "./bin/deno",
         "ffmpeg": "./bin/ffmpeg",
+        "yt-dlp": "./bin/yt-dlp",
     })
 
 app = FastAPI(

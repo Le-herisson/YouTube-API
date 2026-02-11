@@ -3,3 +3,4 @@ bin/*.cmd
 bin/*.exe
 bin/*.dll
 bin/yt-dlp_linux.zip
+bin/ffmpeg_linux.zip
