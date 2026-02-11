@@ -1,27 +1,28 @@
-import logging
 import os
 import platform
-
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-import youtube
-
-logger = logging.getLogger(__name__)
-if not os.path.exists("./logs/"):
-    os.mkdir(path="./logs/")
-logging.basicConfig(filename='./logs/youtube.log', level=logging.DEBUG)
+if os.getenv("roFs") == 1:
+    import logging
+    import youtube as yt
+    logger = logging.getLogger(__name__)
+    if not os.path.exists("./logs/"):
+        os.mkdir(path="./logs/")
+    logging.basicConfig(filename='./logs/youtube.log', level=logging.DEBUG)
+else:
+    import youtube_nocache as yt
 
 isWin32 = platform.system() == "Windows"
 if isWin32:
-    youtube.init(paths={
+    yt.init(paths={
         "deno": "./bin/deno.exe",
         "ffmpeg": "./bin/ffmpeg.exe",
         "yt-dlp": "./bin/yt-dlp.exe",
     })
 else:
-    youtube.init(paths={
+    yt.init(paths={
         "deno": "./bin/deno",
         "ffmpeg": "./bin/ffmpeg",
         "yt-dlp": "./bin/yt-dlp",
@@ -31,7 +32,7 @@ else:
 app = FastAPI(
     title="YouTube API",
     description="An alternative for the Official YT Api",
-    version="1.10.7",
+    version="1.10.9",
     root_path="",
     redoc_url="/newdocs"
 )
@@ -67,25 +68,25 @@ def page_help():
 
 @app.get(path="/video/{vid}/info")
 def page_video_info(vid: str, raw: bool = False):
-    video = youtube.Video()
+    video = yt.Video()
     if not video.is_valid_id(vid):
-        logger.error(msg=f"the id '{vid}' is not in the valid format")
+        print(f"ERROR: the id '{vid}' is not in the valid format")
         return {"detail": "Error: this id is not in the valid format", "success": False}
-    logger.debug(msg=f"Requesting data for vid:{vid}; raw:{raw}")
+    print(f"DEBUG: Requesting data for vid:{vid}; raw:{raw}")
     data = video.infos(vid, raw)
-    logger.debug(msg=f"data:{data}")
+    print(f"DEBUG: data:{data}")
     return {"detail": data, "success": not str(data).startswith("ERROR")}
 
 
 @app.get(path="/video/{vid}/urls")
 def page_video_urls(vid: str):
-    video = youtube.Video()
+    video = yt.Video()
     if not video.is_valid_id(vid):
-        logger.error(msg=f"the id '{vid}' is not in the valid format")
+        print(f"DEBUG: the id '{vid}' is not in the valid format")
         return {"detail": "Error: this id is not in the valid format", "success": False}
-    logger.debug(msg=f"Requesting urls for vid:{vid}")
+    print(f"DEBUG: Requesting urls for vid:{vid}")
     urls = video.urls(_vid=vid)
-    logger.debug(msg=f"urls:{urls}")
+    print(f"DEBUG: urls:{urls}")
     return {"detail": urls, "success": not str(urls).startswith("ERROR")}
 
 
