@@ -4,7 +4,8 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-if os.getenv("roFs") == 1:
+print(f"DEBUG: roFs={os.getenv("roFs")}")
+if not os.getenv("roFs") == "true":
     import logging
     import youtube as yt
     logger = logging.getLogger(__name__)
@@ -32,11 +33,12 @@ else:
 app = FastAPI(
     title="YouTube API",
     description="An alternative for the Official YT Api",
-    version="1.10.9",
+    version="1.10.10",
     root_path="",
     redoc_url="/newdocs"
 )
 
+# noinspection PyTypeChecker
 app.add_middleware(
     middleware_class=CORSMiddleware,
     allow_origins=["*"],

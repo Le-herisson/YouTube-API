@@ -72,8 +72,8 @@ class Video(object):
                 print(f"ERROR: {'res1': {res1.status_code}, 'res2': {res2.status_code}}")
                 raise ConnectionError
             with yt_dlp.YoutubeDL({
-                'quiet': True, 'simulate': True, 'noplaylist': True,
-                'js_runtimes': {'deno': {'path': paths['deno']}}, "ffmpeg_location": paths['ffmpeg']
+                'simulate': True, 'noplaylist': True, 'js_runtimes': {'deno': {'path': paths['deno']}},
+                "ffmpeg_location": paths['ffmpeg'], 'extractor-args': 'youtube:player_client=web_safari'
             }) as ydl:
                 infos = [ydl.extract_info(f"https://youtu.be/{_vid}", download=False), res1.json(), res2.json()]
             return infos if _raw else Video._extract(infos)
