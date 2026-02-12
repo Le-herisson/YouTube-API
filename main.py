@@ -5,7 +5,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 print(f"DEBUG: roFs={os.getenv("roFs")}")
-if not os.getenv("roFs") == "true":
+if not os.getenv("roFs") == "false":
+    import youtube_nocache as yt
+else:
     import logging
     import youtube as yt
     logger = logging.getLogger(__name__)
