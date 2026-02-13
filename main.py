@@ -14,8 +14,6 @@ else:
     if not os.path.exists("./logs/"):
         os.mkdir(path="./logs/")
     logging.basicConfig(filename='./logs/youtube.log', level=logging.DEBUG)
-else:
-    import youtube_nocache as yt
 
 isWin32 = platform.system() == "Windows"
 if isWin32:
@@ -35,7 +33,7 @@ else:
 app = FastAPI(
     title="YouTube API",
     description="An alternative for the Official YT Api",
-    version="1.10.10",
+    version="1.10.11",
     root_path="",
     redoc_url="/newdocs"
 )
