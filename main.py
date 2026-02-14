@@ -33,7 +33,7 @@ else:
 app = FastAPI(
     title="YouTube API",
     description="An alternative for the Official YT Api",
-    version="1.10.11",
+    version="1.10.12",
     root_path="",
     redoc_url="/newdocs"
 )

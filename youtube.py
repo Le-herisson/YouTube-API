@@ -140,7 +140,10 @@ class Video(object):
         ytdl_opts = {'simulate': True, 'forceurl': True, 'noplaylist': True,
                      'js_runtimes': {'deno': {'path': paths['deno']}}, "ffmpeg_location": paths['ffmpeg']}
         try:
-            with yt_dlp.YoutubeDL(ytdl_opts) as ydl:
+            with yt_dlp.YoutubeDL({
+                'simulate': True, 'forceurl': True, 'noplaylist': True, 'js_runtimes': {'deno': {'path': paths['deno']}}
+                , "ffmpeg_location": paths['ffmpeg'], 'extractor-args': 'youtube:player_client=web_safari'
+            }) as ydl:
                 infos = ydl.extract_info(f"https://youtu.be/{_vid}", download=False)
                 logger.debug(f"infos['requested_formats']={infos['requested_formats']}")
                 is_premium = infos['requested_formats'][0]['format_note'] == "Premium"
@@ -155,4 +158,4 @@ class Video(object):
                 }
         except Exception as e:
             logger.exception(msg=e)
-            return f"ERROR: Video and/or audio is unavailable for video '{_vid}'; ytdl_opts: {ytdl_opts}; exception msg: {e}"
+            return f"ERROR: Video and/or audio is unavailable for video '{_vid}'; exception msg: {e}"
