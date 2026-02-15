@@ -3,11 +3,26 @@ import requests
 import yt_dlp
 
 paths = {}
+ytdlp_opts = {}
 
 
 def init(**kwargs):
-    global paths
-    paths = kwargs.get('paths', KeyError)
+    if kwargs.get('paths', None) is None:
+        raise KeyError
+    global paths, ytdlp_opts
+    paths = kwargs.get('paths')
+    ytdlp_opts = {
+        'simulate': True,
+        'forceurl': True,
+        'noplaylist': True,
+        'js_runtimes': {
+            'deno': {
+                'path': paths['deno']
+            }
+        },
+        "ffmpeg_location": paths['ffmpeg'],
+        'extractor-args': 'youtube:player_client=web_safari'
+    }
 
 
 class Video(object):
@@ -72,6 +87,13 @@ class Video(object):
         return [video_obj, audio_obj]
 
     @staticmethod
+    def _available_subtitles(__subs: list):
+        subs = []
+        for obj in __subs:
+            subs = subs + [obj]
+        return subs
+
+    @staticmethod
     def is_valid_id(_vid: str):
         return True if re.search(pattern=r"([a-zA-Z0-9_-]{11})", string=_vid) else False
 
@@ -83,10 +105,7 @@ class Video(object):
             if not res1.status_code == 200 or not res2.status_code == 200:
                 print(f"ERROR: {'res1': {res1.status_code}, 'res2': {res2.status_code}}")
                 raise ConnectionError
-            with yt_dlp.YoutubeDL({
-                'simulate': True, 'noplaylist': True, 'js_runtimes': {'deno': {'path': paths['deno']}},
-                "ffmpeg_location": paths['ffmpeg'], 'extractor-args': 'youtube:player_client=web_safari'
-            }) as ydl:
+            with yt_dlp.YoutubeDL(ytdlp_opts) as ydl:
                 infos = [ydl.extract_info(f"https://youtu.be/{_vid}", download=False), res1.json(), res2.json()]
             return infos if _raw else Video._extract(infos)
         except Exception as e:
@@ -96,10 +115,7 @@ class Video(object):
     @staticmethod
     def urls(_vid: str):
         try:
-            with yt_dlp.YoutubeDL({
-                'simulate': True, 'forceurl': True, 'noplaylist': True, 'js_runtimes': {'deno': {'path': paths['deno']}}
-                , "ffmpeg_location": paths['ffmpeg'], 'extractor-args': 'youtube:player_client=web_safari'
-            }) as ydl:
+            with yt_dlp.YoutubeDL(ytdlp_opts) as ydl:
                 infos = ydl.extract_info(f"https://youtu.be/{_vid}", download=False)
                 urls = Video._extract_objects(infos)
                 print(f"DEBUG: _extract_objects(infos)={urls}")
@@ -112,3 +128,27 @@ class Video(object):
         except Exception as e:
             print(f"Exception: {e}")
             return f"ERROR: Video and/or audio is unavailable for video '{_vid}'; exception msg: {e}"
+
+    @staticmethod
+    def subtitles(_vid: str, _lang: str, _auto: bool = False):
+        try:
+            with yt_dlp.YoutubeDL(ytdlp_opts) as ydl:
+                subtitles = ydl.extract_info(f"https://youtu.be/{_vid}", download=False)[
+                    'automatic_captions' if _auto else 'subtitles']
+            if _lang not in Video._available_subtitles(subtitles):
+                raise LookupError
+            return subtitles[_lang]
+        except Exception as e:
+            print(f"Exception: {e}")
+            return f"ERROR: Subtitles is unavailable for video='{_vid}'; mode='{'auto' if _auto else 'custom'}'; lang='{_lang}'; exception msg: {e}"
+
+    @staticmethod
+    def available_subtitles(_vid: str, _auto: bool = False):
+        try:
+            with yt_dlp.YoutubeDL(ytdlp_opts) as ydl:
+                subtitles = ydl.extract_info(f"https://youtu.be/{_vid}", download=False)[
+                    'automatic_captions' if _auto else 'subtitles']
+            return Video._available_subtitles(subtitles)
+        except Exception as e:
+            print(f"Exception: {e}")
+            return f"ERROR: Subtitles is unavailable for video='{_vid}'; mode='{'auto' if _auto else 'custom'}'; exception msg: {e}"
