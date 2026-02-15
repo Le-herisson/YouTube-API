@@ -110,6 +110,18 @@ class Video(object):
         }
 
     @staticmethod
+    def _extract_objects(__info):
+        video_obj, audio_obj = (None, None)
+        for obj in __info['formats']:
+            if not obj['video_ext'] == "none":
+                video_obj = obj
+            if not obj['audio_ext'] == "none":
+                audio_obj = obj
+        if video_obj is None or audio_obj is None:
+            raise RuntimeError
+        return [video_obj, audio_obj]
+
+    @staticmethod
     def is_valid_id(_vid: str):
         return True if re.search(pattern=r"([a-zA-Z0-9_-]{11})", string=_vid) else False
 
@@ -137,24 +149,19 @@ class Video(object):
 
     @staticmethod
     def urls(_vid: str):
-        ytdl_opts = {'simulate': True, 'forceurl': True, 'noplaylist': True,
-                     'js_runtimes': {'deno': {'path': paths['deno']}}, "ffmpeg_location": paths['ffmpeg']}
         try:
             with yt_dlp.YoutubeDL({
                 'simulate': True, 'forceurl': True, 'noplaylist': True, 'js_runtimes': {'deno': {'path': paths['deno']}}
                 , "ffmpeg_location": paths['ffmpeg'], 'extractor-args': 'youtube:player_client=web_safari'
             }) as ydl:
                 infos = ydl.extract_info(f"https://youtu.be/{_vid}", download=False)
-                logger.debug(f"infos['requested_formats']={infos['requested_formats']}")
-                is_premium = infos['requested_formats'][0]['format_note'] == "Premium"
-                if is_premium:
-                    logger.warning(msg="This format is Premium")
+                urls = Video._extract_objects(infos)
+                logger.debug(f"_extract_objects(infos)={urls}")
                 return {
-                    "video": infos['formats'][-2]['url'] if is_premium else infos['requested_formats'][0]['url'],
-                    "audio": infos['requested_formats'][1]['url'],
-                    "video_frmt": infos['formats'][-2]['format'] if is_premium else infos['requested_formats'][0]['format'],
-                    "audio_frmt": infos['requested_formats'][1]['format'],
-                    "is_premium": is_premium
+                    "video": urls[0]['url'],
+                    "audio": urls[1]['url'],
+                    "video_frmt": urls[0]['format'],
+                    "audio_frmt": urls[1]['format']
                 }
         except Exception as e:
             logger.exception(msg=e)
